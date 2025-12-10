@@ -27,7 +27,6 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
       notes: formData.notes || ''
     };
 
-    // Initialize gifts array if it doesn't exist
     const currentGifts = data.gifts || [];
     setData({ ...data, gifts: [...currentGifts, newGift] });
     setFormData({ guestName: '', amount: 0, type: 'Salami', event: 'Barat', notes: '' });
@@ -48,44 +47,44 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
   const totalReceived = (data.gifts || []).reduce((sum, g) => sum + g.amount, 0);
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
-        <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 flex items-center gap-4">
-          <div className="p-3 bg-pink-100 rounded-full text-pink-600">
-             <Gift className="w-6 h-6" />
+    <div className="space-y-6 h-full flex flex-col animate-fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
+        <div className="bg-pink-50 p-6 rounded-2xl border border-pink-100 flex items-center gap-4 shadow-sm">
+          <div className="p-4 bg-white rounded-full text-pink-500 shadow-sm border border-pink-100">
+             <Gift className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-sm text-pink-600 font-medium">
-              {lang === 'en' ? 'Total Salami/Gifts' : 'کل سلامی/تحائف'}
+            <p className="text-sm text-pink-600 font-bold uppercase tracking-wider mb-1">
+              {lang === 'en' ? 'Total Collected' : 'کل وصولی'}
             </p>
-            <p className="text-2xl font-bold text-pink-900">PKR {totalReceived.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-pink-900 tracking-tight">PKR {totalReceived.toLocaleString()}</p>
           </div>
         </div>
-        <div className="md:col-span-2 bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between">
-            <div className="relative w-full max-w-xs">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+        <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="relative w-full">
+                <Search className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
                 <input
                     type="text"
                     placeholder={lang === 'en' ? "Search guest name..." : "مہمان کا نام تلاش کریں..."}
-                    className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm w-full"
+                    className="pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm w-full bg-slate-50"
                     value={filter}
                     onChange={e => setFilter(e.target.value)}
                 />
             </div>
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium ml-4"
+                className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary/90 text-sm font-medium shadow-md shadow-primary/20 transition-all active:scale-95 whitespace-nowrap"
             >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 {lang === 'en' ? 'Add Gift/Salami' : 'نیا اندراج'}
             </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
-        <div className="overflow-auto flex-1">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
+        <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0 z-10">
               <tr>
                 <th className={`p-4 ${lang === 'ur' ? 'text-right font-urdu' : ''}`}>Guest Name</th>
                 <th className={`p-4 ${lang === 'ur' ? 'text-right font-urdu' : ''}`}>Type</th>
@@ -98,16 +97,17 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
             <tbody className="divide-y divide-slate-100">
               {filteredGifts.length === 0 ? (
                 <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                    <td colSpan={6} className="p-12 text-center text-slate-400">
+                        <Gift className="w-12 h-12 mx-auto mb-3 opacity-20" />
                         No gifts recorded yet. Add Salami or Nyoondrah here.
                     </td>
                 </tr>
               ) : filteredGifts.map(gift => (
-                <tr key={gift.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={gift.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="p-4 font-medium text-slate-900">{gift.guestName}</td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      gift.type === 'Salami' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
+                      gift.type === 'Salami' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-purple-50 text-purple-700 border-purple-100'
                     }`}>
                       {gift.type}
                     </span>
@@ -115,8 +115,8 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
                   <td className="p-4 text-slate-600">{gift.event}</td>
                   <td className="p-4 font-mono font-bold text-slate-700">{gift.amount.toLocaleString()}</td>
                   <td className="p-4 text-slate-500 italic truncate max-w-xs">{gift.notes}</td>
-                  <td className="p-4 flex justify-center">
-                    <button onClick={() => handleDelete(gift.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                  <td className="p-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleDelete(gift.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-100 transition-colors" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -128,19 +128,19 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 shadow-2xl">
-            <h3 className="text-lg font-bold mb-4">{lang === 'en' ? 'Record Gift/Salami' : 'سلامی/تحفہ ریکارڈ کریں'}</h3>
-            <div className="space-y-3">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl animate-zoom-in">
+            <h3 className="text-2xl font-bold mb-6 text-slate-800">{lang === 'en' ? 'Record Gift/Salami' : 'سلامی/تحفہ ریکارڈ کریں'}</h3>
+            <div className="space-y-4">
               <input 
-                className="w-full border p-2 rounded" 
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-primary/20" 
                 placeholder="Guest Name (e.g. Mamoo Jaan)" 
                 value={formData.guestName} 
                 onChange={e => setFormData({...formData, guestName: e.target.value})}
               />
-              <div className="flex gap-2">
+              <div className="flex gap-4">
                   <select 
-                    className="w-1/2 border p-2 rounded"
+                    className="w-1/2 border border-slate-300 p-3 rounded-xl bg-white"
                     value={formData.type}
                     onChange={e => setFormData({...formData, type: e.target.value as any})}
                   >
@@ -150,14 +150,14 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
                   </select>
                   <input 
                     type="number"
-                    className="w-1/2 border p-2 rounded" 
+                    className="w-1/2 border border-slate-300 p-3 rounded-xl font-mono" 
                     placeholder="Amount" 
                     value={formData.amount || ''} 
                     onChange={e => setFormData({...formData, amount: Number(e.target.value)})}
                   />
               </div>
               <select 
-                className="w-full border p-2 rounded"
+                className="w-full border border-slate-300 p-3 rounded-xl bg-white"
                 value={formData.event}
                 onChange={e => setFormData({...formData, event: e.target.value})}
               >
@@ -168,15 +168,15 @@ export const GiftManager: React.FC<Props> = ({ data, setData, lang }) => {
                 <option value="Walima">Walima</option>
               </select>
               <textarea 
-                className="w-full border p-2 rounded h-20" 
+                className="w-full border border-slate-300 p-3 rounded-xl h-24 resize-none focus:ring-2 focus:ring-primary/20" 
                 placeholder="Notes (e.g. Gave Gold Ring)" 
                 value={formData.notes} 
                 onChange={e => setFormData({...formData, notes: e.target.value})}
               />
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">Save</button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">Cancel</button>
+              <button onClick={handleSave} className="px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-medium shadow-md shadow-primary/20 transition-all active:scale-95">Save Entry</button>
             </div>
           </div>
         </div>

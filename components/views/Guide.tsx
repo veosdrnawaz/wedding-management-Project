@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppData, Language, Task } from '@/types';
-import { BookOpen, Utensils, PlusCircle, AlertCircle } from 'lucide-react';
+import { BookOpen, Utensils, PlusCircle, AlertCircle, Sparkles } from 'lucide-react';
 
 interface Props {
   lang: Language;
@@ -31,7 +31,10 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       titleUr: 'میلاد / قرآن خوانی',
       descriptionEn: 'A religious gathering to pray for the couple\'s blessed future.',
       descriptionUr: 'شادی کی برکت کے لیے گھر میں قرآن خوانی یا میلاد کا اہتمام۔',
-      requirements: ['Qari / Naat Khawan', 'Floor Seating (Chandni)', 'Tabarruk / Food Boxes', 'Sound System']
+      requirements: ['Qari / Naat Khawan', 'Floor Seating (Chandni)', 'Tabarruk / Food Boxes', 'Sound System'],
+      color: 'from-emerald-50 to-teal-50',
+      borderColor: 'border-emerald-100',
+      iconColor: 'text-emerald-600'
     },
     {
       id: 'mangni',
@@ -39,7 +42,10 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       titleUr: 'منگنی',
       descriptionEn: 'The formal engagement ceremony where rings are exchanged.',
       descriptionUr: 'منگنی کی تقریب جس میں انگوٹھیوں کا تبادلہ ہوتا ہے اور مٹھائی بانٹی جاتی ہے۔',
-      requirements: ['Rings (Angoothiyan)', 'Sweets (Mithai)', 'Flower Decor', 'Small Gift Baskets']
+      requirements: ['Rings (Angoothiyan)', 'Sweets (Mithai)', 'Flower Decor', 'Small Gift Baskets'],
+      color: 'from-pink-50 to-rose-50',
+      borderColor: 'border-pink-100',
+      iconColor: 'text-pink-600'
     },
     {
       id: 'dholki',
@@ -47,7 +53,10 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       titleUr: 'ڈھولکی',
       descriptionEn: 'Pre-wedding musical nights with family singing and dancing.',
       descriptionUr: 'شادی سے پہلے موسیقی کی راتیں جس میں خاندان والے گانے گاتے اور ڈھول بجاتے ہیں۔',
-      requirements: ['Dholak', 'Song Book (Geet)', 'Floor Seating (Gao Takkiyay)', 'Spoons for Dhol', 'Simple Snacks']
+      requirements: ['Dholak', 'Song Book (Geet)', 'Floor Seating (Gao Takkiyay)', 'Spoons for Dhol', 'Simple Snacks'],
+      color: 'from-orange-50 to-amber-50',
+      borderColor: 'border-orange-100',
+      iconColor: 'text-orange-600'
     },
     {
       id: 'mehndi',
@@ -55,7 +64,10 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       titleUr: 'مہندی / رسم حنا',
       descriptionEn: 'A colorful event with henna application, dances, and traditional rites.',
       descriptionUr: 'ایک رنگا رنگ تقریب جس میں مہندی لگائی جاتی ہے، رقص ہوتا ہے اور روایتی رسومات ادا کی جاتی ہیں۔',
-      requirements: ['Henna (Mehndi)', 'Thaals for Decor', 'Yellow/Green Dresses', 'Gajray (Flower Bracelets)', 'Mithai for Rasm']
+      requirements: ['Henna (Mehndi)', 'Thaals for Decor', 'Yellow/Green Dresses', 'Gajray (Flower Bracelets)', 'Mithai for Rasm'],
+      color: 'from-yellow-50 to-lime-50',
+      borderColor: 'border-yellow-100',
+      iconColor: 'text-yellow-600'
     },
     {
       id: 'barat',
@@ -63,7 +75,10 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       titleUr: 'بارات',
       descriptionEn: 'The groom processes to the bride\'s house/venue. The main wedding event.',
       descriptionUr: 'دولہا بارات لے کر دلہن کے گھر/ہال جاتا ہے۔ یہ شادی کی مرکزی تقریب ہوتی ہے۔',
-      requirements: ['Sehra for Groom', 'Sherwani', 'Doodh Pilai Cash', 'Rasta Rokai Cash', 'Nikkah Khawan', 'Dried Dates (Chuwaray)']
+      requirements: ['Sehra for Groom', 'Sherwani', 'Doodh Pilai Cash', 'Rasta Rokai Cash', 'Nikkah Khawan', 'Dried Dates (Chuwaray)'],
+      color: 'from-red-50 to-rose-50',
+      borderColor: 'border-red-100',
+      iconColor: 'text-red-600'
     },
     {
       id: 'walima',
@@ -72,6 +87,9 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       descriptionEn: 'Reception hosted by the groom, announcing the marriage.',
       descriptionUr: 'دولہا کی طرف سے دیا جانے والا استقبالیہ کھانا جو شادی کے اعلان کے طور پر ہوتا ہے۔',
       requirements: ['Reception Venue', 'Menu (Biryani/Qorma)', 'Stage Decor', 'Sofa Set', 'Guest Favors (Bid)'],
+      color: 'from-blue-50 to-indigo-50',
+      borderColor: 'border-blue-100',
+      iconColor: 'text-blue-600'
     }
   ];
 
@@ -99,51 +117,59 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
   return (
     <div className="space-y-8 animate-fade-in pb-10">
       {/* Header */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <h2 className={`text-2xl font-bold mb-2 flex items-center gap-2 ${lang === 'ur' ? 'font-urdu' : ''}`}>
-          <BookOpen className="w-6 h-6 text-primary" />
+          <BookOpen className="w-7 h-7 text-primary" />
           {lang === 'en' ? 'Wedding Guide (Rasm-o-Riwaj)' : 'شادی گائیڈ اور رسم و رواج'}
         </h2>
-        <p className="text-slate-600">
+        <p className="text-slate-600 max-w-2xl leading-relaxed">
           {lang === 'en' 
-            ? 'A complete guide to functions, requirements, and cultural expectations. Click items to add them to your task list.' 
+            ? 'A complete guide to functions, requirements, and cultural expectations. Click on any checklist item to instantly add it to your Task Manager.' 
             : 'تقریبات، ضروریات اور ثقافتی توقعات کی مکمل گائیڈ۔ اپنی لسٹ میں شامل کرنے کے لیے آئٹمز پر کلک کریں۔'}
         </p>
       </div>
 
       {/* Events Section */}
       <div>
-        <h3 className={`text-xl font-bold mb-4 text-slate-800 px-2 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+        <h3 className={`text-xl font-bold mb-6 text-slate-800 px-2 flex items-center gap-2 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+          <Sparkles className="w-5 h-5 text-accent" />
           {lang === 'en' ? 'Functions & Requirements' : 'تقریبات اور ضروریات'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow group">
-              <div className="bg-gradient-to-r from-primary/10 to-purple-100 p-4 border-b border-primary/10">
-                <h3 className={`text-xl font-bold text-primary ${lang === 'ur' ? 'font-urdu' : ''}`}>
-                  {lang === 'en' ? event.titleEn : event.titleUr}
-                </h3>
-              </div>
-              <div className="p-5">
-                <p className={`text-sm text-slate-600 mb-4 h-12 ${lang === 'ur' ? 'font-urdu leading-relaxed' : ''}`}>
+            <div key={event.id} className={`bg-gradient-to-br ${event.color} rounded-2xl shadow-sm border ${event.borderColor} overflow-hidden hover:shadow-md transition-all duration-300 group`}>
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className={`p-2 bg-white rounded-lg shadow-sm ${event.iconColor}`}>
+                      <Utensils className="w-5 h-5" />
+                   </div>
+                   <h3 className={`text-xl font-bold text-slate-800 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                    {lang === 'en' ? event.titleEn : event.titleUr}
+                   </h3>
+                </div>
+                
+                <p className={`text-sm text-slate-600 mb-6 min-h-[3rem] ${lang === 'ur' ? 'font-urdu leading-relaxed' : 'leading-relaxed'}`}>
                   {lang === 'en' ? event.descriptionEn : event.descriptionUr}
                 </p>
                 
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <h4 className={`text-sm font-semibold text-slate-800 mb-2 flex items-center gap-1 ${lang === 'ur' ? 'font-urdu' : ''}`}>
-                    <Utensils className="w-3 h-3" />
-                    {lang === 'en' ? 'Requirements (Click to Add):' : 'ضروریات (شامل کرنے کے لیے کلک کریں):'}
+                <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
+                  <h4 className={`text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                    {lang === 'en' ? 'Checklist (Click to Add):' : 'ضروریات (شامل کرنے کے لیے کلک کریں):'}
                   </h4>
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {event.requirements.map((req, idx) => {
                       const eventName = lang === 'en' ? event.titleEn : event.titleUr;
                       return (
-                        <li key={idx} className="flex items-center justify-between group/item text-sm text-slate-600 hover:bg-white p-1 rounded transition-colors cursor-pointer" onClick={() => addToTasks(req, eventName)}>
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-accent rounded-full"></span>
-                            <span>{req}</span>
+                        <li 
+                            key={idx} 
+                            onClick={() => addToTasks(req, eventName)}
+                            className="flex items-center justify-between group/item text-sm text-slate-700 hover:bg-white p-2 rounded-lg transition-all cursor-pointer border border-transparent hover:border-slate-100 hover:shadow-sm"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className={`w-1.5 h-1.5 rounded-full bg-current ${event.iconColor}`}></span>
+                            <span className="font-medium">{req}</span>
                           </div>
-                          <PlusCircle className="w-4 h-4 text-slate-300 group-hover/item:text-green-500 opacity-0 group-hover/item:opacity-100 transition-all" />
+                          <PlusCircle className="w-4 h-4 text-green-500 opacity-0 group-hover/item:opacity-100 transition-all transform group-hover/item:scale-110" />
                         </li>
                       );
                     })}
@@ -158,17 +184,17 @@ export const Guide: React.FC<Props> = ({ lang, data, setData }) => {
       {/* Cultural Expectations Section */}
       <div>
         <h3 className={`text-xl font-bold mb-4 text-slate-800 px-2 flex items-center gap-2 ${lang === 'ur' ? 'font-urdu' : ''}`}>
-          <AlertCircle className="w-5 h-5 text-accent" />
+          <AlertCircle className="w-5 h-5 text-red-500" />
           {lang === 'en' ? 'Cultural Demands & Expectations' : 'ثقافتی توقعات اور مطالبات'}
         </h3>
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="divide-y divide-slate-100">
             {expectations.map((exp, idx) => (
-              <div key={idx} className="p-4 hover:bg-slate-50 transition-colors">
-                <h4 className={`text-lg font-bold text-slate-800 mb-1 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+              <div key={idx} className="p-6 hover:bg-slate-50 transition-colors">
+                <h4 className={`text-lg font-bold text-slate-800 mb-2 ${lang === 'ur' ? 'font-urdu' : ''}`}>
                   {lang === 'en' ? exp.titleEn : exp.titleUr}
                 </h4>
-                <p className={`text-slate-600 text-sm ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                <p className={`text-slate-600 text-sm leading-relaxed ${lang === 'ur' ? 'font-urdu' : ''}`}>
                   {lang === 'en' ? exp.descEn : exp.descUr}
                 </p>
               </div>

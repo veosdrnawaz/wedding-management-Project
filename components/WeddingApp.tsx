@@ -56,7 +56,6 @@ const initialData: AppData = {
 };
 
 const WeddingApp: React.FC = () => {
-  // Use client-side only for localStorage to avoid hydration mismatch
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<AppData>(initialData);
   const [currentView, setCurrentView] = useState('dashboard');
@@ -98,44 +97,47 @@ const WeddingApp: React.FC = () => {
       case 'vendors': return <VendorManager data={data} setData={setData} lang={lang} />;
       case 'tasks': return <TaskManager data={data} setData={setData} lang={lang} />;
       default: return (
-        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-          <div className="text-6xl mb-4">🚧</div>
-          <h2 className="text-2xl font-bold">Coming Soon</h2>
-          <p>Wardrobe Module is under construction.</p>
+        <div className="flex flex-col items-center justify-center h-full text-slate-400 animate-fade-in">
+          <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
+            <div className="text-6xl mb-4">🚧</div>
+            <h2 className="text-2xl font-bold text-slate-800">Coming Soon</h2>
+            <p className="text-slate-500 mt-2">The Wardrobe Manager is under construction.</p>
+          </div>
         </div>
       );
     }
   };
 
-  // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) return null;
 
   return (
     <div className={`flex h-screen bg-slate-50 ${lang === 'ur' ? 'font-urdu' : ''}`} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
-      {/* Sidebar for Desktop */}
-      <aside className={`fixed inset-y-0 ${lang === 'ur' ? 'right-0' : 'left-0'} z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : (lang === 'ur' ? 'translate-x-full' : '-translate-x-full')}`}>
-        <div className="p-6 flex justify-between items-center border-b border-white/10">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 ${lang === 'ur' ? 'right-0' : 'left-0'} z-50 w-72 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : (lang === 'ur' ? 'translate-x-full' : '-translate-x-full')} shadow-2xl`}>
+        <div className="p-6 flex justify-between items-center border-b border-white/10 bg-slate-900/50 backdrop-blur-sm">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
             WeddingMgr
           </h1>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden">
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-white/70 hover:text-white transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
         
-        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-160px)]">
+        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-160px)] custom-scrollbar">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => { setCurrentView(item.id); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
                 currentView === item.id 
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/25 translate-x-1' 
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
               }`}
             >
-              {item.icon}
-              <span className={lang === 'ur' ? 'text-lg' : 'text-sm font-medium'}>
+              <div className={`${currentView === item.id ? 'text-white' : 'text-slate-500 group-hover:text-white'} transition-colors`}>
+                {item.icon}
+              </div>
+              <span className={`${lang === 'ur' ? 'text-lg font-medium' : 'text-sm font-medium'} tracking-wide`}>
                 {lang === 'ur' ? item.labelUr : item.labelEn}
               </span>
             </button>
@@ -143,12 +145,14 @@ const WeddingApp: React.FC = () => {
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-white/10">
-           <div className="bg-white/5 rounded-xl p-3">
+           <div className="bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
              <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-slate-900 font-bold">A</div>
+               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center text-white font-bold shadow-lg">
+                 A
+               </div>
                <div className="overflow-hidden">
-                 <p className="text-sm font-medium truncate">Admin User</p>
-                 <p className="text-xs text-slate-400">Organizer</p>
+                 <p className="text-sm font-semibold truncate text-white">Admin User</p>
+                 <p className="text-xs text-slate-400">Wedding Organizer</p>
                </div>
              </div>
            </div>
@@ -156,13 +160,13 @@ const WeddingApp: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-40">
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header className="h-16 glass sticky top-0 z-40 flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 text-slate-600">
+            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold text-slate-800 hidden md:block">
+            <h2 className="text-xl font-bold text-slate-800 hidden md:block tracking-tight">
               {navItems.find(i => i.id === currentView)?.labelEn}
             </h2>
           </div>
@@ -171,8 +175,10 @@ const WeddingApp: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-6 relative">
-          {renderContent()}
+        <div className="flex-1 overflow-auto p-4 md:p-8 bg-slate-50/50">
+          <div className="max-w-7xl mx-auto h-full">
+            {renderContent()}
+          </div>
         </div>
       </main>
 

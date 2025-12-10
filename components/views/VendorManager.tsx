@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppData, Language, Vendor } from '@/types';
-import { Plus, Trash2, Edit2, Phone, CheckCircle, PieChart } from 'lucide-react';
+import { Plus, Trash2, Edit2, Phone, DollarSign, Wallet, AlertCircle } from 'lucide-react';
 
 interface Props {
   data: AppData;
@@ -64,47 +64,56 @@ export const VendorManager: React.FC<Props> = ({ data, setData, lang }) => {
   const totalPending = totalCost - totalPaid;
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
+    <div className="space-y-6 h-full flex flex-col animate-fade-in">
       {/* Financial Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-           <p className="text-sm text-blue-600 font-medium">Total Cost</p>
-           <p className="text-2xl font-bold text-blue-900">PKR {totalCost.toLocaleString()}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
+           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+               <DollarSign className="w-24 h-24 text-blue-600" />
+           </div>
+           <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-2">Total Contract Value</p>
+           <p className="text-3xl font-bold text-slate-800 tracking-tight">PKR {totalCost.toLocaleString()}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-           <p className="text-sm text-green-600 font-medium">Paid Amount</p>
-           <p className="text-2xl font-bold text-green-900">PKR {totalPaid.toLocaleString()}</p>
+        <div className="bg-green-50 p-6 rounded-2xl shadow-sm border border-green-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+               <Wallet className="w-24 h-24 text-green-600" />
+           </div>
+           <p className="text-sm text-green-700 font-bold uppercase tracking-wider mb-2">Total Paid</p>
+           <p className="text-3xl font-bold text-green-800 tracking-tight">PKR {totalPaid.toLocaleString()}</p>
         </div>
-        <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-           <p className="text-sm text-red-600 font-medium">Pending Balance</p>
-           <p className="text-2xl font-bold text-red-900">PKR {totalPending.toLocaleString()}</p>
+        <div className="bg-red-50 p-6 rounded-2xl shadow-sm border border-red-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+               <AlertCircle className="w-24 h-24 text-red-600" />
+           </div>
+           <p className="text-sm text-red-700 font-bold uppercase tracking-wider mb-2">Pending Balance</p>
+           <p className="text-3xl font-bold text-red-800 tracking-tight">PKR {totalPending.toLocaleString()}</p>
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <h2 className={`text-xl font-bold ${lang === 'ur' ? 'font-urdu' : ''}`}>
+      <div className="flex justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h2 className={`text-xl font-bold text-slate-800 ${lang === 'ur' ? 'font-urdu' : ''}`}>
             {lang === 'en' ? 'Vendor Payments' : 'وینڈرز اور ادائیگیاں'}
         </h2>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium"
+          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary/90 text-sm font-medium shadow-md shadow-primary/20 transition-all active:scale-95"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           {lang === 'en' ? 'Add Vendor' : 'نیا وینڈر'}
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
-        <div className="overflow-auto flex-1">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
+        <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0 z-10">
               <tr>
                 <th className="p-4">Vendor</th>
                 <th className="p-4">Service</th>
                 <th className="p-4">Contact</th>
-                <th className="p-4">Total Cost</th>
-                <th className="p-4">Paid</th>
-                <th className="p-4">Balance</th>
+                <th className="p-4 text-right">Total Cost</th>
+                <th className="p-4 text-right">Paid</th>
+                <th className="p-4 text-right">Balance</th>
                 <th className="p-4 text-center">Actions</th>
               </tr>
             </thead>
@@ -112,22 +121,26 @@ export const VendorManager: React.FC<Props> = ({ data, setData, lang }) => {
               {data.vendors.map(vendor => {
                 const balance = vendor.cost - vendor.paidAmount;
                 return (
-                <tr key={vendor.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={vendor.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="p-4 font-medium text-slate-900">{vendor.name}</td>
                   <td className="p-4 text-slate-600">
-                    <span className="px-2 py-1 bg-slate-100 rounded-full text-xs">
+                    <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-md text-xs font-medium">
                         {vendor.serviceType}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-500 flex items-center gap-1">
-                    <Phone className="w-3 h-3" /> {vendor.contact}
+                  <td className="p-4 text-slate-500 font-mono text-xs">
+                    {vendor.contact}
                   </td>
-                  <td className="p-4 font-mono">PKR {vendor.cost.toLocaleString()}</td>
-                  <td className="p-4 font-mono text-green-600">PKR {vendor.paidAmount.toLocaleString()}</td>
-                  <td className="p-4 font-mono font-bold text-red-600">PKR {balance.toLocaleString()}</td>
-                  <td className="p-4 flex justify-center gap-2">
-                    <button onClick={() => openModal(vendor)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(vendor.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
+                  <td className="p-4 font-mono text-right text-slate-700">PKR {vendor.cost.toLocaleString()}</td>
+                  <td className="p-4 font-mono text-right text-green-600 font-medium">PKR {vendor.paidAmount.toLocaleString()}</td>
+                  <td className="p-4 text-right">
+                    <span className={`font-mono font-bold ${balance > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                        PKR {balance.toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="p-4 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => openModal(vendor)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDelete(vendor.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"><Trash2 className="w-4 h-4" /></button>
                   </td>
                 </tr>
               )})}
@@ -137,52 +150,54 @@ export const VendorManager: React.FC<Props> = ({ data, setData, lang }) => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 shadow-2xl">
-            <h3 className="text-lg font-bold mb-4">{editingId ? 'Edit Vendor' : 'Add New Vendor'}</h3>
-            <div className="space-y-3">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl animate-zoom-in">
+            <h3 className="text-2xl font-bold mb-6 text-slate-800">{editingId ? 'Edit Vendor' : 'Add New Vendor'}</h3>
+            <div className="space-y-5">
               <input 
-                className="w-full border p-2 rounded" 
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-primary/20" 
                 placeholder="Vendor Name" 
                 value={formData.name} 
                 onChange={e => setFormData({...formData, name: e.target.value})}
               />
-              <input 
-                className="w-full border p-2 rounded" 
-                placeholder="Service (e.g. Catering, Decor)" 
-                value={formData.serviceType} 
-                onChange={e => setFormData({...formData, serviceType: e.target.value})}
-              />
-              <input 
-                className="w-full border p-2 rounded" 
-                placeholder="Contact Number" 
-                value={formData.contact} 
-                onChange={e => setFormData({...formData, contact: e.target.value})}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                    <label className="text-xs text-slate-500">Total Cost</label>
+              <div className="grid grid-cols-2 gap-4">
+                  <input 
+                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-primary/20" 
+                    placeholder="Service Type" 
+                    value={formData.serviceType} 
+                    onChange={e => setFormData({...formData, serviceType: e.target.value})}
+                  />
+                  <input 
+                    className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-primary/20" 
+                    placeholder="Contact Number" 
+                    value={formData.contact} 
+                    onChange={e => setFormData({...formData, contact: e.target.value})}
+                  />
+              </div>
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Cost</label>
                     <input 
                         type="number"
-                        className="w-full border p-2 rounded" 
+                        className="w-full border border-slate-300 p-3 rounded-xl bg-white font-mono" 
                         value={formData.cost || ''} 
                         onChange={e => setFormData({...formData, cost: Number(e.target.value)})}
                     />
                 </div>
-                <div>
-                    <label className="text-xs text-slate-500">Paid Amount</label>
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Paid Amount</label>
                     <input 
                         type="number"
-                        className="w-full border p-2 rounded" 
+                        className="w-full border border-slate-300 p-3 rounded-xl bg-white font-mono" 
                         value={formData.paidAmount || ''} 
                         onChange={e => setFormData({...formData, paidAmount: Number(e.target.value)})}
                     />
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={closeModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">Save</button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={closeModal} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">Cancel</button>
+              <button onClick={handleSave} className="px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-medium shadow-md shadow-primary/20 transition-all active:scale-95">Save Vendor</button>
             </div>
           </div>
         </div>

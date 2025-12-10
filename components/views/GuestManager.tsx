@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppData, Guest, Language, RSVPSstatus } from '@/types';
-import { Plus, Trash2, Edit2, MessageCircle, Filter } from 'lucide-react';
+import { Plus, Trash2, Edit2, MessageCircle, Filter, Search, User, MapPin, Phone } from 'lucide-react';
 import { generateInviteText } from '@/services/geminiService';
 
 interface Props {
@@ -15,7 +15,6 @@ export const GuestManager: React.FC<Props> = ({ data, setData, lang }) => {
   const [inviteModal, setInviteModal] = useState<{ isOpen: boolean, text: string, guest: string }>({ isOpen: false, text: '', guest: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form State
   const [formData, setFormData] = useState<Partial<Guest>>({
     name: '', village: '', phone: '', gender: 'Family', rsvp: RSVPSstatus.PENDING
   });
@@ -78,31 +77,33 @@ export const GuestManager: React.FC<Props> = ({ data, setData, lang }) => {
   );
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <div className="relative">
-          <Filter className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+    <div className="space-y-6 h-full flex flex-col animate-fade-in">
+      {/* Header & Filter */}
+      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-slate-200 gap-4">
+        <div className="relative w-full md:w-96">
+          <Search className="w-5 h-5 absolute left-3 top-3 text-slate-400" />
           <input
             type="text"
             placeholder={lang === 'en' ? "Search guest or village..." : "مہمان یا گاؤں تلاش کریں"}
-            className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm w-64"
+            className="pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm w-full transition-shadow"
             value={filterVillage}
             onChange={e => setFilterVillage(e.target.value)}
           />
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 text-sm font-medium"
+          className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl hover:bg-primary/90 text-sm font-medium shadow-md shadow-primary/20 transition-all active:scale-95 w-full md:w-auto justify-center"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           {lang === 'en' ? 'Add Guest' : 'نیا مہمان'}
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
-        <div className="overflow-auto flex-1">
+      {/* Table Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col">
+        <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0 z-10">
               <tr>
                 <th className={`p-4 ${lang === 'ur' ? 'text-right font-urdu' : ''}`}>Name</th>
                 <th className={`p-4 ${lang === 'ur' ? 'text-right font-urdu' : ''}`}>Village</th>
@@ -113,37 +114,51 @@ export const GuestManager: React.FC<Props> = ({ data, setData, lang }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredGuests.map(guest => (
-                <tr key={guest.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-medium text-slate-900">{guest.name}</td>
+              {filteredGuests.length === 0 ? (
+                <tr>
+                    <td colSpan={6} className="p-10 text-center text-slate-400">
+                        <div className="flex flex-col items-center">
+                            <User className="w-12 h-12 mb-3 opacity-20" />
+                            <p>No guests found.</p>
+                        </div>
+                    </td>
+                </tr>
+              ) : filteredGuests.map(guest => (
+                <tr key={guest.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="p-4 font-medium text-slate-900 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                        {guest.name.charAt(0)}
+                    </div>
+                    {guest.name}
+                  </td>
                   <td className="p-4 text-slate-600">{guest.village}</td>
-                  <td className="p-4 text-slate-500 font-mono text-xs">{guest.phone}</td>
+                  <td className="p-4 text-slate-500 font-mono text-xs tracking-wide">{guest.phone}</td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      guest.gender === 'Male' ? 'bg-blue-50 text-blue-700' :
-                      guest.gender === 'Female' ? 'bg-pink-50 text-pink-700' :
-                      'bg-purple-50 text-purple-700'
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
+                      guest.gender === 'Male' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                      guest.gender === 'Female' ? 'bg-pink-50 text-pink-700 border-pink-100' :
+                      'bg-purple-50 text-purple-700 border-purple-100'
                     }`}>
                       {guest.gender}
                     </span>
                   </td>
                   <td className="p-4">
-                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      guest.rsvp === RSVPSstatus.ACCEPTED ? 'bg-green-100 text-green-800' :
-                      guest.rsvp === RSVPSstatus.DECLINED ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                     <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
+                      guest.rsvp === RSVPSstatus.ACCEPTED ? 'bg-green-50 text-green-700 border-green-100' :
+                      guest.rsvp === RSVPSstatus.DECLINED ? 'bg-red-50 text-red-700 border-red-100' :
+                      'bg-yellow-50 text-yellow-700 border-yellow-100'
                     }`}>
                       {guest.rsvp}
                     </span>
                   </td>
-                  <td className="p-4 flex justify-center gap-2">
-                    <button onClick={() => generateInvite(guest)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Generate Invite">
+                  <td className="p-4 flex justify-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => generateInvite(guest)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-transparent hover:border-green-100" title="Generate Invite">
                       <MessageCircle className="w-4 h-4" />
                     </button>
-                    <button onClick={() => openModal(guest)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Edit">
+                    <button onClick={() => openModal(guest)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100" title="Edit">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(guest.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                    <button onClick={() => handleDelete(guest.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -156,50 +171,76 @@ export const GuestManager: React.FC<Props> = ({ data, setData, lang }) => {
 
       {/* Edit/Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 shadow-2xl">
-            <h3 className="text-lg font-bold mb-4">{editingId ? 'Edit Guest' : 'Add New Guest'}</h3>
-            <div className="space-y-3">
-              <input 
-                className="w-full border p-2 rounded" 
-                placeholder="Name" 
-                value={formData.name} 
-                onChange={e => setFormData({...formData, name: e.target.value})}
-              />
-              <input 
-                className="w-full border p-2 rounded" 
-                placeholder="Village/City" 
-                value={formData.village} 
-                onChange={e => setFormData({...formData, village: e.target.value})}
-              />
-              <input 
-                className="w-full border p-2 rounded" 
-                placeholder="Phone" 
-                value={formData.phone} 
-                onChange={e => setFormData({...formData, phone: e.target.value})}
-              />
-              <select 
-                className="w-full border p-2 rounded"
-                value={formData.gender}
-                onChange={e => setFormData({...formData, gender: e.target.value as any})}
-              >
-                <option value="Family">Family</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-               <select 
-                className="w-full border p-2 rounded"
-                value={formData.rsvp}
-                onChange={e => setFormData({...formData, rsvp: e.target.value as any})}
-              >
-                <option value={RSVPSstatus.PENDING}>Pending</option>
-                <option value={RSVPSstatus.ACCEPTED}>Accepted</option>
-                <option value={RSVPSstatus.DECLINED}>Declined</option>
-              </select>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-white/20 animate-zoom-in">
+            <h3 className="text-xl font-bold mb-6 text-slate-800">{editingId ? 'Edit Guest' : 'Add New Guest'}</h3>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                 <label className="text-xs font-medium text-slate-500 ml-1">Full Name</label>
+                 <div className="relative">
+                    <User className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <input 
+                        className="w-full border border-slate-300 p-2.5 pl-10 rounded-xl" 
+                        placeholder="e.g. Chacha Bashir" 
+                        value={formData.name} 
+                        onChange={e => setFormData({...formData, name: e.target.value})}
+                    />
+                 </div>
+              </div>
+              <div className="space-y-1">
+                 <label className="text-xs font-medium text-slate-500 ml-1">Village / City</label>
+                 <div className="relative">
+                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <input 
+                        className="w-full border border-slate-300 p-2.5 pl-10 rounded-xl" 
+                        placeholder="e.g. Lahore" 
+                        value={formData.village} 
+                        onChange={e => setFormData({...formData, village: e.target.value})}
+                    />
+                 </div>
+              </div>
+              <div className="space-y-1">
+                 <label className="text-xs font-medium text-slate-500 ml-1">Phone Number</label>
+                 <div className="relative">
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                    <input 
+                        className="w-full border border-slate-300 p-2.5 pl-10 rounded-xl" 
+                        placeholder="0300..." 
+                        value={formData.phone} 
+                        onChange={e => setFormData({...formData, phone: e.target.value})}
+                    />
+                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-500 ml-1">Gender</label>
+                    <select 
+                        className="w-full border border-slate-300 p-2.5 rounded-xl bg-white"
+                        value={formData.gender}
+                        onChange={e => setFormData({...formData, gender: e.target.value as any})}
+                    >
+                        <option value="Family">Family</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-500 ml-1">RSVP Status</label>
+                    <select 
+                        className="w-full border border-slate-300 p-2.5 rounded-xl bg-white"
+                        value={formData.rsvp}
+                        onChange={e => setFormData({...formData, rsvp: e.target.value as any})}
+                    >
+                        <option value={RSVPSstatus.PENDING}>Pending</option>
+                        <option value={RSVPSstatus.ACCEPTED}>Accepted</option>
+                        <option value={RSVPSstatus.DECLINED}>Declined</option>
+                    </select>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={closeModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">Save</button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={closeModal} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">Cancel</button>
+              <button onClick={handleSave} className="px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-medium shadow-md shadow-primary/20 transition-all active:scale-95">Save Changes</button>
             </div>
           </div>
         </div>
@@ -207,21 +248,26 @@ export const GuestManager: React.FC<Props> = ({ data, setData, lang }) => {
 
       {/* Invite Modal */}
       {inviteModal.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[400px] shadow-2xl">
-            <h3 className="text-lg font-bold mb-2">Invite for {inviteModal.guest}</h3>
-            <textarea 
-              readOnly 
-              className={`w-full h-32 border p-3 rounded bg-slate-50 text-sm ${lang === 'ur' ? 'text-right font-urdu' : ''}`}
-              value={inviteModal.text}
-            />
-            <div className="flex justify-between mt-4">
-              <button onClick={() => setInviteModal({...inviteModal, isOpen: false})} className="text-sm text-slate-500 hover:underline">Close</button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-[450px] shadow-2xl animate-zoom-in">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-green-500" />
+                Invite for {inviteModal.guest}
+            </h3>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                <textarea 
+                readOnly 
+                className={`w-full h-32 bg-transparent border-none focus:ring-0 text-sm resize-none ${lang === 'ur' ? 'text-right font-urdu' : ''}`}
+                value={inviteModal.text}
+                />
+            </div>
+            <div className="flex justify-between items-center">
+              <button onClick={() => setInviteModal({...inviteModal, isOpen: false})} className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Close</button>
               <a 
                 href={`https://wa.me/?text=${encodeURIComponent(inviteModal.text)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white rounded-xl hover:bg-[#20bd5a] font-medium shadow-lg shadow-green-200 transition-all active:scale-95"
               >
                 <MessageCircle className="w-4 h-4" /> Share on WhatsApp
               </a>
