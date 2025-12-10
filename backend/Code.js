@@ -1,124 +1,140 @@
-// This file is intended for Google Apps Script (GAS) deployment.
-// It serves as the backend if the user deploys it to a Google Sheet.
 
-function doGet(e) {
-  return HtmlService.createHtmlOutput("Wedding Manager Backend is Running");
+/**
+ * Wedding Manager Backend
+ * Serves as the API for the Blogger Frontend.
+ */
+
+// 1. Create Menu for Auto-Setup
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Wedding Manager')
+    .addItem('⚡ Setup Database (Run First)', 'setupDatabase')
+    .addToUi();
 }
 
-function doPost(e) {
-  const params = JSON.parse(e.postData.contents);
-  const action = params.action;
-  const data = params.data;
-  
+// 2. Setup Database Sheets
+function setupDatabase() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  let result = {};
-  
-  try {
-    switch(action) {
-      case 'setup':
-        setupDatabase(ss);
-        result = { status: 'success', message: 'Database setup complete' };
-        break;
-      case 'get_all':
-        result = getAllData(ss);
-        break;
-      case 'add_guest':
-        addRow(ss, 'Guests', data);
-        result = { status: 'success', data: data };
-        break;
-      case 'update_guest':
-        updateRow(ss, 'Guests', data.id, data);
-        result = { status: 'success' };
-        break;
-      case 'delete_guest':
-        deleteRow(ss, 'Guests', data.id);
-        result = { status: 'success' };
-        break;
-      // Add similar cases for Vendors, Events, etc.
-      default:
-        result = { status: 'error', message: 'Unknown action' };
-    }
-  } catch (err) {
-    result = { status: 'error', message: err.toString() };
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+  const sheets = [
+    { name: 'Guests', headers: ['id', 'name', 'village', 'phone', 'rsvp', 'gender', 'events'] },
+    { name: 'Events', headers: ['id', 'name', 'type', 'date', 'venue', 'budget'] },
+    { name: 'Vendors', headers: ['id', 'name', 'serviceType', 'cost', 'paidAmount', 'contact'] }, // Handles Food/Decoration
+    { name: 'Tasks', headers: ['id', 'name', 'priority', 'assignedTo', 'completed'] },
+    { name: 'Gifts', headers: ['id', 'guestName', 'amount', 'type', 'event', 'notes'] }
+  ];
 
-function setupDatabase(ss) {
-  const sheets = ['Guests', 'Events', 'Vendors', 'Tasks', 'Suits', 'Stats', 'Gifts'];
-  sheets.forEach(name => {
-    if (!ss.getSheetByName(name)) {
-      ss.insertSheet(name);
-      // Initialize headers based on schema
-      const sheet = ss.getSheetByName(name);
-      if (name === 'Guests') sheet.appendRow(['id', 'name', 'village', 'phone', 'rsvp', 'gender', 'events']);
-      if (name === 'Events') sheet.appendRow(['id', 'name', 'date', 'venue', 'budget']);
-      if (name === 'Vendors') sheet.appendRow(['id', 'name', 'serviceType', 'cost', 'paidAmount', 'contact']);
-      if (name === 'Tasks') sheet.appendRow(['id', 'name', 'priority', 'assignedTo', 'completed']);
-      if (name === 'Suits') sheet.appendRow(['id', 'owner', 'type', 'tailor', 'status']);
-      if (name === 'Gifts') sheet.appendRow(['id', 'guestName', 'amount', 'type', 'event', 'notes']);
+  sheets.forEach(schema => {
+    let sheet = ss.getSheetByName(schema.name);
+    if (!sheet) {
+      sheet = ss.insertSheet(schema.name);
+      sheet.deleteRows(2, sheet.getMaxRows() - 1); // Remove extra rows for cleanliness
+    }
+    
+    const headerRange = sheet.getRange(1, 1, 1, schema.headers.length);
+    if (headerRange.isBlank()) {
+      headerRange.setValues([schema.headers]);
+      headerRange.setFontWeight('bold').setBackground('#e0e7ff').setFontColor('#3730a3');
+      sheet.setFrozenRows(1);
     }
   });
+
+  SpreadsheetApp.getUi().alert('✅ Database Setup Complete!\n\nSheets for Guests, Events, Vendors (Food/Decor), Tasks, and Gifts have been created.');
 }
 
+// 3. Handle API Requests (POST)
+// We use POST for everything to avoid caching issues and handle larger payloads
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000); // Wait up to 10s for other requests
+
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const action = params.action;
+    const payload = params.data;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    let result = { status: 'success' };
+
+    if (action === 'GET_ALL') {
+      result.data = getAllData(ss);
+    } 
+    else if (action === 'SYNC_DATA') {
+      // Syncs all tables from frontend to backend
+      if(payload.guests) syncTable(ss, 'Guests', payload.guests);
+      if(payload.events) syncTable(ss, 'Events', payload.events);
+      if(payload.vendors) syncTable(ss, 'Vendors', payload.vendors);
+      if(payload.tasks) syncTable(ss, 'Tasks', payload.tasks);
+      if(payload.gifts) syncTable(ss, 'Gifts', payload.gifts);
+      result.message = "Synced successfully";
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Helper: Get all data
 function getAllData(ss) {
   const output = {};
-  const sheets = ['Guests', 'Events', 'Vendors', 'Tasks', 'Suits', 'Gifts'];
-  sheets.forEach(name => {
+  const tables = ['Guests', 'Events', 'Vendors', 'Tasks', 'Gifts'];
+  
+  tables.forEach(name => {
     const sheet = ss.getSheetByName(name);
-    if (sheet) {
-      const data = sheet.getDataRange().getValues();
-      const headers = data.shift();
-      output[name.toLowerCase()] = data.map(row => {
-        let obj = {};
-        headers.forEach((h, i) => obj[h] = row[i]);
-        return obj;
-      });
+    if (!sheet) return;
+    
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      output[name.toLowerCase()] = [];
+      return;
     }
-  });
-  return { status: 'success', data: output };
-}
 
-function addRow(ss, sheetName, dataObj) {
-  const sheet = ss.getSheetByName(sheetName);
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const row = headers.map(h => {
-    if (h === 'events' && Array.isArray(dataObj[h])) return JSON.stringify(dataObj[h]);
-    return dataObj[h] || '';
-  });
-  sheet.appendRow(row);
-}
-
-function updateRow(ss, sheetName, id, dataObj) {
-  const sheet = ss.getSheetByName(sheetName);
-  const data = sheet.getDataRange().getValues();
-  // Assuming column 0 is ID
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] == id) {
-      const headers = data[0];
-      const newRow = headers.map((h, colIndex) => {
-        if (dataObj.hasOwnProperty(h)) {
-             if (h === 'events' && Array.isArray(dataObj[h])) return JSON.stringify(dataObj[h]);
-             return dataObj[h];
+    const data = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    output[name.toLowerCase()] = data.map(row => {
+      let obj = {};
+      headers.forEach((h, i) => {
+        let val = row[i];
+        if (h === 'completed') val = (val === true || val === 'TRUE');
+        if (h === 'events' && typeof val === 'string' && val.startsWith('[')) {
+          try { val = JSON.parse(val); } catch(e) {}
         }
-        return data[i][colIndex];
+        obj[h] = val;
       });
-      sheet.getRange(i + 1, 1, 1, newRow.length).setValues([newRow]);
-      return;
-    }
-  }
+      return obj;
+    });
+  });
+  return output;
 }
 
-function deleteRow(ss, sheetName, id) {
+// Helper: Sync Table (Overwrite method for simplicity in this SPA architecture)
+function syncTable(ss, sheetName, items) {
   const sheet = ss.getSheetByName(sheetName);
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] == id) {
-      sheet.deleteRow(i + 1);
-      return;
-    }
+  if(!sheet) return;
+  
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  // Clear old content
+  if(sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow()-1, sheet.getLastColumn()).clearContent();
   }
+  
+  if (!items || items.length === 0) return;
+
+  const rows = items.map(item => {
+    return headers.map(h => {
+      let val = item[h];
+      if (val === undefined || val === null) return '';
+      if (Array.isArray(val) || typeof val === 'object') return JSON.stringify(val);
+      return val;
+    });
+  });
+
+  sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
 }

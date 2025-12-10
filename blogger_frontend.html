@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Manager SaaS</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#C026D3', // Fuchsia
+                        secondary: '#4F46E5', // Indigo
+                        accent: '#F59E0B', // Amber
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        urdu: ['Noto Nastaliq Urdu', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- REACT & BABEL (For In-Browser Compilation) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- LUCIDE ICONS (Global) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { background-color: #f8fafc; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .font-urdu { font-family: 'Noto Nastaliq Urdu', serif; line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ==========================================
+        // CONFIGURATION (UPDATE THESE)
+        // ==========================================
+        
+        // 1. Deploy the Google Apps Script and paste the URL here
+        const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE"; 
+        
+        // 2. Add your Gemini API Key here for AI features
+        const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; 
+
+        // ==========================================
+        // ICONS COMPONENT (Wrapper for Lucide)
+        // ==========================================
+        const Icon = ({ name, size = 20, className = "" }) => {
+            React.useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        // ==========================================
+        // DATA MODELS & INITIAL DATA
+        // ==========================================
+        const initialData = {
+            guests: [],
+            events: [
+                { id: '1', name: 'Mehndi', type: 'Mehndi', date: '2024-12-01', venue: 'Home', budget: 200000 },
+                { id: '2', name: 'Barat', type: 'Barat', date: '2024-12-02', venue: 'Grand Hall', budget: 1500000 }
+            ],
+            vendors: [
+                { id: '101', name: 'Royal Catering', serviceType: 'Food', cost: 500000, paidAmount: 100000, contact: '0300-1234567' },
+                { id: '102', name: 'Dream Decor', serviceType: 'Decoration', cost: 150000, paidAmount: 50000, contact: '0321-7654321' }
+            ],
+            tasks: [
+                { id: '1', name: 'Finalize Food Menu', priority: 'High', assignedTo: 'Father', completed: false },
+                { id: '2', name: 'Select Stage Flower Decor', priority: 'Medium', assignedTo: 'Sister', completed: false }
+            ],
+            gifts: []
+        };
+
+        // ==========================================
+        // SERVICES
+        // ==========================================
+        const syncData = async (data) => {
+            if(!API_URL || API_URL.includes("YOUR_GOOGLE")) return; // Don't run if not configured
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'SYNC_DATA', data: data })
+                });
+            } catch (e) { console.error("Sync failed", e); }
+        };
+
+        // ==========================================
+        // COMPONENTS
+        // ==========================================
+
+        // --- DASHBOARD ---
+        const Dashboard = ({ data, lang, onNavigate }) => {
+            // Food & Decor Stats
+            const foodCost = data.vendors.filter(v => v.serviceType === 'Food' || v.serviceType === 'Catering').reduce((acc, v) => acc + v.cost, 0);
+            const decorCost = data.vendors.filter(v => v.serviceType === 'Decoration' || v.serviceType === 'Decor').reduce((acc, v) => acc + v.cost, 0);
+            
+            const totalVendorCost = data.vendors.reduce((acc, v) => acc + v.cost, 0);
+            const totalPaid = data.vendors.reduce((acc, v) => acc + v.paidAmount, 0);
+            const outstanding = totalVendorCost - totalPaid;
+
+            return (
+                <div className="space-y-6 animate-fade-in pb-10">
+                    {/* Welcome Banner */}
+                    <div className="bg-gradient-to-r from-primary to-purple-800 text-white p-6 rounded-xl shadow-lg flex justify-between items-center">
+                        <div>
+                            <h2 className={`text-xl font-bold ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                                {lang === 'en' ? 'Wedding Dashboard' : 'شادی ڈیش بورڈ'}
+                            </h2>
+                            <p className="text-white/80 mt-1">
+                                {lang === 'en' ? 'Track Food, Decor, Guests & Costs.' : 'کھانا، سجاوٹ، مہمان اور اخراجات کا حساب رکھیں۔'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <StatCard 
+                            title={lang === 'en' ? 'Total Guests' : 'کل مہمان'} 
+                            value={data.guests.length} 
+                            icon="users" 
+                            color="bg-blue-100 text-blue-600"
+                            onClick={() => onNavigate('guests')}
+                        />
+                         <StatCard 
+                            title={lang === 'en' ? 'Food Budget' : 'کھانے کا بجٹ'} 
+                            value={`Rs ${foodCost.toLocaleString()}`} 
+                            icon="utensils" 
+                            color="bg-orange-100 text-orange-600"
+                            onClick={() => onNavigate('vendors')}
+                        />
+                        <StatCard 
+                            title={lang === 'en' ? 'Decor Budget' : 'سجاوٹ کا بجٹ'} 
+                            value={`Rs ${decorCost.toLocaleString()}`} 
+                            icon="flower" 
+                            color="bg-pink-100 text-pink-600"
+                            onClick={() => onNavigate('vendors')}
+                        />
+                        <StatCard 
+                            title={lang === 'en' ? 'Outstanding' : 'بقایا جات'} 
+                            value={`Rs ${outstanding.toLocaleString()}`} 
+                            icon="alert-triangle" 
+                            color="bg-red-100 text-red-600"
+                            onClick={() => onNavigate('vendors')}
+                        />
+                    </div>
+
+                    {/* Financial Breakdown */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 className={`text-lg font-bold mb-4 ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                             {lang === 'en' ? 'Vendor Payments (Food & Decor)' : 'وینڈرز کی ادائیگیاں (کھانا اور سجاوٹ)'}
+                        </h3>
+                        <div className="overflow-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th className="p-3">Vendor</th>
+                                        <th className="p-3">Service</th>
+                                        <th className="p-3">Cost</th>
+                                        <th className="p-3 text-red-600">Outstanding</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {data.vendors.map(v => (
+                                        <tr key={v.id}>
+                                            <td className="p-3 font-medium">{v.name}</td>
+                                            <td className="p-3">
+                                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                                    v.serviceType === 'Food' ? 'bg-orange-100 text-orange-700' :
+                                                    v.serviceType === 'Decoration' ? 'bg-pink-100 text-pink-700' : 'bg-slate-100'
+                                                }`}>
+                                                    {v.serviceType}
+                                                </span>
+                                            </td>
+                                            <td className="p-3">{v.cost.toLocaleString()}</td>
+                                            <td className="p-3 text-red-600 font-bold">{(v.cost - v.paidAmount).toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StatCard = ({ title, value, icon, color, onClick }) => (
+            <button onClick={onClick} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between hover:scale-[1.02] transition-all w-full text-left">
+                <div>
+                    <p className="text-sm text-slate-500 mb-1">{title}</p>
+                    <h3 className="text-xl font-bold text-slate-800">{value}</h3>
+                </div>
+                <div className={`p-3 rounded-lg ${color}`}>
+                    <Icon name={icon} size={24} />
+                </div>
+            </button>
+        );
+
+        // --- VENDOR MANAGER ---
+        const VendorManager = ({ data, setData, lang }) => {
+            const [isOpen, setIsOpen] = React.useState(false);
+            const [form, setForm] = React.useState({ name: '', serviceType: 'Food', cost: 0, paidAmount: 0, contact: '' });
+
+            const handleSave = () => {
+                const newVendor = { ...form, id: Date.now().toString(), cost: Number(form.cost), paidAmount: Number(form.paidAmount) };
+                setData(prev => ({ ...prev, vendors: [...prev.vendors, newVendor] }));
+                setIsOpen(false);
+                setForm({ name: '', serviceType: 'Food', cost: 0, paidAmount: 0, contact: '' });
+            };
+
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                        <h2 className={`text-xl font-bold ${lang === 'ur' ? 'font-urdu' : ''}`}>
+                            {lang === 'en' ? 'Vendors (Food & Decor)' : 'کھانا اور سجاوٹ وینڈرز'}
+                        </h2>
+                        <button onClick={() => setIsOpen(true)} className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                            <Icon name="plus" size={16} /> {lang === 'en' ? 'Add Vendor' : 'شامل کریں'}
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {data.vendors.map(v => (
+                            <div key={v.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                                <div className={`absolute top-0 left-0 w-1 h-full ${v.serviceType === 'Food' ? 'bg-orange-500' : v.serviceType === 'Decoration' ? 'bg-pink-500' : 'bg-slate-300'}`}></div>
+                                <div className="pl-3">
+                                    <div className="flex justify-between">
+                                        <h3 className="font-bold text-lg">{v.name}</h3>
+                                        <span className="text-xs font-bold uppercase text-slate-400">{v.serviceType}</span>
+                                    </div>
+                                    <div className="mt-3 space-y-1 text-sm text-slate-600">
+                                        <p className="flex items-center gap-2"><Icon name="phone" size={14} /> {v.contact}</p>
+                                        <p className="flex items-center gap-2"><Icon name="dollar-sign" size={14} /> Cost: {v.cost.toLocaleString()}</p>
+                                        <p className="flex items-center gap-2 text-green-600"><Icon name="check-circle" size={14} /> Paid: {v.paidAmount.toLocaleString()}</p>
+                                        <p className="flex items-center gap-2 text-red-600 font-bold"><Icon name="alert-circle" size={14} /> Due: {(v.cost - v.paidAmount).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {isOpen && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                            <div className="bg-white p-6 rounded-xl w-96">
+                                <h3 className="text-lg font-bold mb-4">Add Vendor</h3>
+                                <div className="space-y-3">
+                                    <input className="w-full border p-2 rounded" placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                                    <select className="w-full border p-2 rounded" value={form.serviceType} onChange={e => setForm({...form, serviceType: e.target.value})}>
+                                        <option value="Food">Food / Catering</option>
+                                        <option value="Decoration">Decoration</option>
+                                        <option value="Photography">Photography</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <input className="w-full border p-2 rounded" placeholder="Contact" value={form.contact} onChange={e => setForm({...form, contact: e.target.value})} />
+                                    <input type="number" className="w-full border p-2 rounded" placeholder="Total Cost" value={form.cost || ''} onChange={e => setForm({...form, cost: e.target.value})} />
+                                    <input type="number" className="w-full border p-2 rounded" placeholder="Paid Amount" value={form.paidAmount || ''} onChange={e => setForm({...form, paidAmount: e.target.value})} />
+                                </div>
+                                <div className="mt-4 flex justify-end gap-2">
+                                    <button onClick={() => setIsOpen(false)} className="px-4 py-2 text-slate-600">Cancel</button>
+                                    <button onClick={handleSave} className="px-4 py-2 bg-primary text-white rounded">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- GUEST MANAGER ---
+        const GuestManager = ({ data, setData, lang }) => {
+            const [form, setForm] = React.useState({ name: '', village: '' });
+            const [isOpen, setIsOpen] = React.useState(false);
+
+            const handleSave = () => {
+                const newGuest = { ...form, id: Date.now().toString(), gender: 'Family', rsvp: 'Pending', phone: '' };
+                setData(prev => ({ ...prev, guests: [...prev.guests, newGuest] }));
+                setIsOpen(false); setForm({ name: '', village: '' });
+            };
+
+            return (
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                        <h2 className={`text-xl font-bold ${lang === 'ur' ? 'font-urdu' : ''}`}>Guests</h2>
+                        <button onClick={() => setIsOpen(true)} className="bg-primary text-white px-4 py-2 rounded-lg flex gap-2"><Icon name="plus" size={16}/> Add</button>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-slate-50 border-b">
+                                <tr><th className="p-4">Name</th><th className="p-4">Village</th><th className="p-4">Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                {data.guests.map(g => (
+                                    <tr key={g.id} className="border-b">
+                                        <td className="p-4">{g.name}</td>
+                                        <td className="p-4 text-slate-500">{g.village}</td>
+                                        <td className="p-4"><button className="text-red-500" onClick={() => setData(prev => ({...prev, guests: prev.guests.filter(x => x.id !== g.id)}))}><Icon name="trash-2" size={16}/></button></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                     {isOpen && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                            <div className="bg-white p-6 rounded-xl w-80">
+                                <h3 className="font-bold mb-3">Add Guest</h3>
+                                <input className="w-full border p-2 mb-2 rounded" placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                                <input className="w-full border p-2 mb-4 rounded" placeholder="Village" value={form.village} onChange={e => setForm({...form, village: e.target.value})} />
+                                <button onClick={handleSave} className="w-full bg-primary text-white p-2 rounded">Save</button>
+                                <button onClick={() => setIsOpen(false)} className="w-full mt-2 text-slate-500">Cancel</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )
+        };
+
+        // --- MAIN APP COMPONENT ---
+        const App = () => {
+            const [currentView, setCurrentView] = React.useState('dashboard');
+            const [lang, setLang] = React.useState('en');
+            const [data, setData] = React.useState(initialData);
+            const [loading, setLoading] = React.useState(false);
+            const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+            // Fetch Data on Load
+            React.useEffect(() => {
+                if(API_URL && !API_URL.includes("YOUR_GOOGLE")) {
+                    setLoading(true);
+                    fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'GET_ALL' }) })
+                        .then(res => res.json())
+                        .then(json => {
+                            if(json.data && json.data.guests) setData(json.data);
+                            setLoading(false);
+                        })
+                        .catch(err => { console.error(err); setLoading(false); });
+                }
+            }, []);
+
+            // Auto Sync
+            React.useEffect(() => {
+                const timer = setTimeout(() => syncData(data), 2000);
+                return () => clearTimeout(timer);
+            }, [data]);
+
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+                { id: 'vendors', label: 'Food & Decor', icon: 'utensils' },
+                { id: 'guests', label: 'Guests', icon: 'users' },
+                { id: 'events', label: 'Events', icon: 'calendar' },
+            ];
+
+            return (
+                <div className={`flex h-screen ${lang === 'ur' ? 'font-urdu' : ''}`} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
+                    {/* Sidebar */}
+                    <aside className={`fixed inset-y-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">WeddingMgr</h1>
+                            <button onClick={() => setSidebarOpen(false)} className="md:hidden"><Icon name="x" /></button>
+                        </div>
+                        <nav className="p-4 space-y-2">
+                            {navItems.map(item => (
+                                <button 
+                                    key={item.id} 
+                                    onClick={() => { setCurrentView(item.id); setSidebarOpen(false); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${currentView === item.id ? 'bg-primary text-white' : 'text-slate-400 hover:bg-white/5'}`}
+                                >
+                                    <Icon name={item.icon} size={20} />
+                                    <span>{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+                        {/* Header */}
+                        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-40">
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setSidebarOpen(true)} className="md:hidden text-slate-600"><Icon name="menu" /></button>
+                                <h2 className="text-xl font-bold text-slate-800 hidden md:block">{navItems.find(i => i.id === currentView)?.label}</h2>
+                            </div>
+                            <button onClick={() => setLang(lang === 'en' ? 'ur' : 'en')} className="px-3 py-1 bg-slate-100 rounded text-sm font-bold">
+                                {lang === 'en' ? 'اردو' : 'ENG'}
+                            </button>
+                        </header>
+
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-auto p-6 bg-slate-50">
+                            {loading ? (
+                                <div className="flex items-center justify-center h-full text-slate-400">Loading Database...</div>
+                            ) : (
+                                <>
+                                    {currentView === 'dashboard' && <Dashboard data={data} lang={lang} onNavigate={setCurrentView} />}
+                                    {currentView === 'vendors' && <VendorManager data={data} setData={setData} lang={lang} />}
+                                    {currentView === 'guests' && <GuestManager data={data} setData={setData} lang={lang} />}
+                                    {currentView === 'events' && <div className="text-center text-slate-400 mt-20">Events Manager coming soon</div>}
+                                </>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
