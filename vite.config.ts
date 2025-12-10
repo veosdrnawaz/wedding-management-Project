@@ -1,3 +1,4 @@
 // This file is intentionally disabled.
-// The project is currently configured to use Next.js (App Router).
-// This file is excluded from tsconfig.json to prevent build errors.
+// The project has been migrated to Next.js.
+// Keeping this file empty prevents "Cannot find module 'vite'" errors.
+export {};
