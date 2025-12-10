@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Sparkles, Loader2 } from 'lucide-react';
-import { chatWithAssistant } from '../services/geminiService';
-import { AppData } from '../types';
+import { Send, X, Sparkles, Loader2 } from 'lucide-react';
+import { chatWithAssistant } from '@/services/geminiService';
+import { AppData } from '@/types';
 
 interface Props {
   data: AppData;

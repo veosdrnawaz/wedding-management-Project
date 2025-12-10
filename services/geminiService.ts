@@ -1,11 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 import { AppData } from "../types";
 
-const apiKey = process.env.API_KEY || '';
+// For Client-side Next.js, we need NEXT_PUBLIC_ prefix
+const apiKey = process.env.NEXT_PUBLIC_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateInviteText = async (guestName: string, eventName: string, language: string): Promise<string> => {
-  if (!apiKey) return "API Key missing. Please configure.";
+  if (!apiKey) return "API Key missing. Please set NEXT_PUBLIC_API_KEY in Vercel.";
   
   try {
     const prompt = `Write a short, warm wedding invitation message for ${eventName} specifically for a guest named ${guestName}. 
@@ -19,7 +20,7 @@ export const generateInviteText = async (guestName: string, eventName: string, l
     return response.text || "Could not generate invite.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Error generating invite.";
+    return "Error generating invite. Check API Quota or Key.";
   }
 };
 
@@ -54,7 +55,7 @@ export const analyzeBudget = async (data: AppData): Promise<string> => {
 };
 
 export const chatWithAssistant = async (message: string, contextData: string): Promise<string> => {
-  if (!apiKey) return "Please set your API Key.";
+  if (!apiKey) return "Please set your NEXT_PUBLIC_API_KEY in Vercel.";
 
   try {
     const systemInstruction = `You are a helpful Wedding Planner Assistant. 
