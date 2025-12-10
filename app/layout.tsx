@@ -13,7 +13,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="h-screen overflow-hidden bg-slate-50 text-slate-900">
+      <head>
+         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="h-screen overflow-hidden bg-slate-50 text-slate-900 font-sans">
         {children}
       </body>
     </html>
